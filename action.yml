@@ -1,0 +1,65 @@
+name: 'Stripe FreeAgent Reconciliation'
+description: 'Search for unexplained Stripe transactions in a FreeAgent account'
+
+inputs:
+  freeagent-client-id:
+    description: 'FreeAgent OAuth client ID'
+    required: true
+  freeagent-client-secret:
+    description: 'FreeAgent OAuth client secret'
+    required: true
+  freeagent-refresh-token:
+    description: 'FreeAgent OAuth refresh token'
+    required: true
+  stripe-secret-key:
+    description: 'Stripe secret key'
+    required: true
+
+outputs:
+  freeagent-refresh-token:
+    description: 'FreeAgent refresh token'
+    value: ${{ steps.read-output-env.outputs.freeagent-refresh-token }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: matthew-kilpatrick/stripe-freeagent-reconcile
+        path: ${{ github.workspace }}
+        ref: main
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      shell: bash
+      
+    - name: Run script
+      env:
+        FREEAGENT_CLIENT_ID: ${{ inputs.freeagent-client-id }}
+        FREEAGENT_CLIENT_SECRET: ${{ inputs.freeagent-client-secret }}
+        FREEAGENT_REFRESH_TOKEN: ${{ inputs.freeagent-refresh-token }}
+        STRIPE_SECRET_KEY: ${{ inputs.stripe-secret-key }}
+      run: python main.py --output-env-file ${{ github.workspace }}/.output.env
+      shell: bash 
+
+    - name: Return output env file from action
+      id: read-output-env
+      run: |
+        echo "freeagent-refresh-token=$(cat ${{ github.workspace }}/.output.env | grep FREEAGENT_REFRESH_TOKEN | cut -d '=' -f 2)" >> $GITHUB_OUTPUT
+      shell: bash

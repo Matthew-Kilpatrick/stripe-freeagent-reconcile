@@ -10,7 +10,9 @@ class OAuthCallbackHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         query = parse_qs(urlparse(self.path).query)
         code = query.get('code')[0]
+        state = query.get('state')[0]
         callback_data['code'] = code
+        callback_data['state'] = state
         # Handle the request, process the callback, etc.
         self.send_response(200)
         self.send_header("Content-type", "text/html")
