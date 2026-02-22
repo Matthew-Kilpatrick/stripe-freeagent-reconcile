@@ -21,6 +21,7 @@ load_dotenv()
 
 # stripe reporting categories to freeagent category
 # https://docs.stripe.com/reports/reporting-categories
+# Individual mappings can be overridden via CATEGORY_MAPPING_<KEY> env vars (e.g. CATEGORY_MAPPING_FEE=https://api.freeagent.com/v2/categories/363)
 freeagent_category_map = {
     'fee': 'https://api.freeagent.com/v2/categories/363',  # stripe fees
     'charge': 'https://api.freeagent.com/v2/categories/001',  # payments
@@ -29,6 +30,13 @@ freeagent_category_map = {
     'dispute': 'https://api.freeagent.com/v2/categories/001',
     'dispute_reversal': 'https://api.freeagent.com/v2/categories/001'
 }
+
+# Allow env vars to override or extend the category map
+_CATEGORY_MAPPING_PREFIX = 'CATEGORY_MAPPING_'
+for env_key, env_value in os.environ.items():
+    if env_key.startswith(_CATEGORY_MAPPING_PREFIX):
+        category_key = env_key[len(_CATEGORY_MAPPING_PREFIX):].lower()
+        freeagent_category_map[category_key] = env_value
 
 stripe_client = StripeClient(os.environ['STRIPE_SECRET_KEY'])
 
