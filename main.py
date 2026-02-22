@@ -21,7 +21,7 @@ load_dotenv()
 
 # stripe reporting categories to freeagent category
 # https://docs.stripe.com/reports/reporting-categories
-# Individual mappings can be overridden via CATEGORY_MAPPING_<key> env vars (e.g. CATEGORY_MAPPING_fee=https://api.freeagent.com/v2/categories/363)
+# Individual mappings can be overridden via CATEGORY_MAPPING_<KEY> env vars (e.g. CATEGORY_MAPPING_FEE=https://api.freeagent.com/v2/categories/363)
 freeagent_category_map = {
     'fee': 'https://api.freeagent.com/v2/categories/363',  # stripe fees
     'charge': 'https://api.freeagent.com/v2/categories/001',  # payments
