@@ -188,7 +188,7 @@ def explain_transaction(session, txn):
     date_end = date_start + 86400
 
     payouts = stripe_client.payouts.list({'arrival_date': {'gte': date_start, 'lt': date_end}})
-    for payout in payouts['data']:
+    for payout in payouts.auto_paging_iter():
         if payout['amount'] == round(float(txn['amount']) * 100):
             print(f"Matched payout {payout['id']} to transaction {txn['url']}")
             stripe_client.payouts.update(payout['id'], {'metadata': {'freeagent_transaction': txn['url']}})
@@ -198,8 +198,8 @@ def explain_transaction(session, txn):
                 'dated_on': txn['dated_on']
             }
 
-            payout_txns = stripe_client.balance_transactions.list({'payout': payout['id']})
-            for payout_txn in payout_txns['data']:
+            payout_txns = stripe_client.balance_transactions.list({'payout': payout['id'], 'limit': 100})
+            for payout_txn in payout_txns.auto_paging_iter():
                 if payout_txn['type'] == 'payout':
                     # this is the amount sent to bank, we don't need to explain this, everything else will sum to it
                     continue
